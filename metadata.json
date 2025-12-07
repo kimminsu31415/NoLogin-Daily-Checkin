@@ -1,0 +1,5 @@
+{
+  "name": "Badminton Check-In",
+  "description": "An anonymous, cookie-free daily check-in system for the Badminton Club.",
+  "requestFramePermissions": []
+}
