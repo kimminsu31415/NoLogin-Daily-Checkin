@@ -9,17 +9,17 @@ import { getDatabase, ref, get, set, runTransaction, child } from 'firebase/data
  * ------------------------------------------------------------------
  */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCegAEDOMzPmoYfHGD5n8o5Lwc_jLHNL4A",
+  authDomain: "no-login-daily-checkin.vercel.app",
+  databaseURL: "https://no-login-daily-checkin-default-rtdb.firebaseio.com",
+  projectId: "no-login-daily-checkin",
+  storageBucket: "no-login-daily-checkin.firebasestorage.app",
+  messagingSenderId: "458264098406",
+  appId: "1:458264098406:web:eda4fbbb4ac0941b569fa7"
 };
 
 // Check if Firebase is configured (Simple validation)
-const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY_HERE" && !firebaseConfig.databaseURL.includes("YOUR_PROJECT_ID");
+const isFirebaseConfigured = firebaseConfig.apiKey !== "AIzaSyCegAEDOMzPmoYfHGD5n8o5Lwc_jLHNL4A" && !firebaseConfig.databaseURL.includes("no-login-daily-checkin");
 
 let db: any = null;
 if (isFirebaseConfigured) {
