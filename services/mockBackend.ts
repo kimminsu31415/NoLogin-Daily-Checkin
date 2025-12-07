@@ -1,8 +1,6 @@
 import { Attendee, DailyStats, CheckInResponse } from '../types';
-// NOTE: Firebase imports commented out due to environment compatibility issues.
-// To enable Firebase, ensure 'firebase' package is installed (v9+) and uncomment below.
-// import { initializeApp } from 'firebase/app';
-// import { getDatabase, ref, get, set, runTransaction, child } from 'firebase/database';
+import * as firebaseApp from 'firebase/app';
+import { getDatabase, ref, get, runTransaction, child } from 'firebase/database';
 
 /**
  * ------------------------------------------------------------------
@@ -16,19 +14,19 @@ const firebaseConfig = {
   projectId: "no-login-daily-checkin",
   storageBucket: "no-login-daily-checkin.firebasestorage.app",
   messagingSenderId: "458264098406",
-  appId: "1:458264098406:web:eda4fbbb4ac0941b569fa7"
+  appId: "1:458264098406:web:eda4fbbb4ac0941b569fa7",
+  measurementId: "G-Z4XHY7KYKH"
 };
 
-// Check if Firebase is configured (Simple validation)
-// Forced to false to ensure app runs with LocalStorage when Firebase package is missing or incompatible.
-const isFirebaseConfigured = false; 
+// Check if Firebase is configured
+const isFirebaseConfigured = true;
 
 let db: any = null;
-/*
-// Firebase initialization logic (Disabled)
+
+// Firebase initialization logic
 if (isFirebaseConfigured) {
   try {
-    const app = initializeApp(firebaseConfig);
+    const app = firebaseApp.initializeApp(firebaseConfig);
     db = getDatabase(app);
     console.log("🔥 Firebase Connected");
   } catch (e) {
@@ -37,8 +35,6 @@ if (isFirebaseConfigured) {
 } else {
   console.warn("⚠️ Firebase config missing. Falling back to LocalStorage (Offline Mode).");
 }
-*/
-console.log("⚠️ Running in LocalStorage mode (Firebase disabled).");
 
 /**
  * UTILITIES
@@ -57,27 +53,24 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  */
 
 const fetchAttendeesFirebase = async (): Promise<Attendee[]> => {
-  // Disabled
-  return [];
-  /*
   if (!db) return [];
   const dateKey = getTodayString();
-  const snapshot = await get(child(ref(db), `checkins/${dateKey}`));
-  
-  if (snapshot.exists()) {
-    const data = snapshot.val();
-    const attendees: Attendee[] = data.attendees || [];
-    // Sort by timestamp descending
-    return attendees.sort((a, b) => b.timestamp - a.timestamp);
+  try {
+    const snapshot = await get(child(ref(db), `checkins/${dateKey}`));
+    
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const attendees: Attendee[] = data.attendees || [];
+      // Sort by timestamp descending
+      return attendees.sort((a, b) => b.timestamp - a.timestamp);
+    }
+  } catch (error) {
+    console.error("Fetch Error:", error);
   }
   return [];
-  */
 };
 
 const checkInUserFirebase = async (userId: string, nickname: string): Promise<CheckInResponse> => {
-  // Disabled
-  return { success: false, message: "DB 연결 오류 (Firebase Disabled)" };
-  /*
   if (!db) return { success: false, message: "DB 연결 오류" };
 
   const dateKey = getTodayString();
@@ -132,13 +125,9 @@ const checkInUserFirebase = async (userId: string, nickname: string): Promise<Ch
     console.error("Firebase Checkin Error", error);
     return { success: false, message: "서버 연결에 실패했습니다." };
   }
-  */
 };
 
 const cancelCheckInUserFirebase = async (userId: string): Promise<CheckInResponse> => {
-  // Disabled
-  return { success: false, message: "DB 연결 오류 (Firebase Disabled)" };
-  /*
   if (!db) return { success: false, message: "DB 연결 오류" };
 
   const dateKey = getTodayString();
@@ -171,7 +160,6 @@ const cancelCheckInUserFirebase = async (userId: string): Promise<CheckInRespons
   } catch (error) {
     return { success: false, message: "취소 처리에 실패했습니다." };
   }
-  */
 };
 
 
@@ -249,16 +237,16 @@ const cancelCheckInUserLocal = async (userId: string): Promise<CheckInResponse> 
  */
 
 export const fetchAttendees = async (): Promise<Attendee[]> => {
-  if (isFirebaseConfigured) return fetchAttendeesFirebase();
+  if (isFirebaseConfigured && db) return fetchAttendeesFirebase();
   return fetchAttendeesLocal();
 };
 
 export const checkInUser = async (userId: string, nickname: string): Promise<CheckInResponse> => {
-  if (isFirebaseConfigured) return checkInUserFirebase(userId, nickname);
+  if (isFirebaseConfigured && db) return checkInUserFirebase(userId, nickname);
   return checkInUserLocal(userId, nickname);
 };
 
 export const cancelCheckInUser = async (userId: string): Promise<CheckInResponse> => {
-  if (isFirebaseConfigured) return cancelCheckInUserFirebase(userId);
+  if (isFirebaseConfigured && db) return cancelCheckInUserFirebase(userId);
   return cancelCheckInUserLocal(userId);
 };
