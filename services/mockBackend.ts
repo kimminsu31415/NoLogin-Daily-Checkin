@@ -1,16 +1,17 @@
 import { Attendee, DailyStats, CheckInResponse } from '../types';
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, set, runTransaction, child } from 'firebase/database';
+// NOTE: Firebase imports commented out due to environment compatibility issues.
+// To enable Firebase, ensure 'firebase' package is installed (v9+) and uncomment below.
+// import { initializeApp } from 'firebase/app';
+// import { getDatabase, ref, get, set, runTransaction, child } from 'firebase/database';
 
 /**
  * ------------------------------------------------------------------
  * [필수 설정] Firebase 콘솔에서 발급받은 설정값을 아래에 입력하세요.
- * 설정값이 비어있으면 자동으로 '로컬 스토리지(기존 방식)'로 동작합니다.
  * ------------------------------------------------------------------
  */
 const firebaseConfig = {
   apiKey: "AIzaSyCegAEDOMzPmoYfHGD5n8o5Lwc_jLHNL4A",
-  authDomain: "no-login-daily-checkin.vercel.app",
+  authDomain: "no-login-daily-checkin.firebaseapp.com",
   databaseURL: "https://no-login-daily-checkin-default-rtdb.firebaseio.com",
   projectId: "no-login-daily-checkin",
   storageBucket: "no-login-daily-checkin.firebasestorage.app",
@@ -19,9 +20,12 @@ const firebaseConfig = {
 };
 
 // Check if Firebase is configured (Simple validation)
-const isFirebaseConfigured = firebaseConfig.apiKey !== "AIzaSyCegAEDOMzPmoYfHGD5n8o5Lwc_jLHNL4A" && !firebaseConfig.databaseURL.includes("no-login-daily-checkin");
+// Forced to false to ensure app runs with LocalStorage when Firebase package is missing or incompatible.
+const isFirebaseConfigured = false; 
 
 let db: any = null;
+/*
+// Firebase initialization logic (Disabled)
 if (isFirebaseConfigured) {
   try {
     const app = initializeApp(firebaseConfig);
@@ -33,6 +37,8 @@ if (isFirebaseConfigured) {
 } else {
   console.warn("⚠️ Firebase config missing. Falling back to LocalStorage (Offline Mode).");
 }
+*/
+console.log("⚠️ Running in LocalStorage mode (Firebase disabled).");
 
 /**
  * UTILITIES
@@ -51,6 +57,9 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  */
 
 const fetchAttendeesFirebase = async (): Promise<Attendee[]> => {
+  // Disabled
+  return [];
+  /*
   if (!db) return [];
   const dateKey = getTodayString();
   const snapshot = await get(child(ref(db), `checkins/${dateKey}`));
@@ -62,9 +71,13 @@ const fetchAttendeesFirebase = async (): Promise<Attendee[]> => {
     return attendees.sort((a, b) => b.timestamp - a.timestamp);
   }
   return [];
+  */
 };
 
 const checkInUserFirebase = async (userId: string, nickname: string): Promise<CheckInResponse> => {
+  // Disabled
+  return { success: false, message: "DB 연결 오류 (Firebase Disabled)" };
+  /*
   if (!db) return { success: false, message: "DB 연결 오류" };
 
   const dateKey = getTodayString();
@@ -119,9 +132,13 @@ const checkInUserFirebase = async (userId: string, nickname: string): Promise<Ch
     console.error("Firebase Checkin Error", error);
     return { success: false, message: "서버 연결에 실패했습니다." };
   }
+  */
 };
 
 const cancelCheckInUserFirebase = async (userId: string): Promise<CheckInResponse> => {
+  // Disabled
+  return { success: false, message: "DB 연결 오류 (Firebase Disabled)" };
+  /*
   if (!db) return { success: false, message: "DB 연결 오류" };
 
   const dateKey = getTodayString();
@@ -154,6 +171,7 @@ const cancelCheckInUserFirebase = async (userId: string): Promise<CheckInRespons
   } catch (error) {
     return { success: false, message: "취소 처리에 실패했습니다." };
   }
+  */
 };
 
 

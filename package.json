@@ -1,10 +1,28 @@
-services/mockBackend.ts
-사용자님이 제공해주신 실제 Firebase 설정값을 적용했습니다.
-package.json
-Vercel이 Firebase와 React를 자동으로 설치하도록 지시하는 명세서입니다.
-vite.config.ts
-Vercel이 코드를 웹사이트로 변환(빌드)할 때 사용하는 설정 파일입니다.
-tsconfig.json
-TypeScript 설정 파일입니다.
-tsconfig.node.json
-Vite용 TypeScript 설정 파일입니다.
+{
+  "name": "badminton-check-in",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^10.8.0",
+    "lucide-react": "^0.344.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.4"
+  }
+}
