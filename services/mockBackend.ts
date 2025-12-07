@@ -46,6 +46,15 @@ const getTodayString = (): string => {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Helper: Firebase sometimes stores arrays as objects (if keys are sparse).
+// This ensures we always get an Array.
+const normalizeAttendees = (data: any): Attendee[] => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (typeof data === 'object') return Object.values(data);
+  return [];
+};
+
 /**
  * ==========================================
  * MODE 1: FIREBASE BACKEND (Real Sync)
@@ -60,7 +69,7 @@ const fetchAttendeesFirebase = async (): Promise<Attendee[]> => {
     
     if (snapshot.exists()) {
       const data = snapshot.val();
-      const attendees: Attendee[] = data.attendees || [];
+      const attendees = normalizeAttendees(data.attendees);
       // Sort by timestamp descending
       return attendees.sort((a, b) => b.timestamp - a.timestamp);
     }
@@ -88,7 +97,8 @@ const checkInUserFirebase = async (userId: string, nickname: string): Promise<Ch
         };
       }
 
-      const attendees: Attendee[] = currentData.attendees || [];
+      // Safe parse attendees
+      const attendees = normalizeAttendees(currentData.attendees);
 
       // 1. Check ID duplicate
       if (attendees.some(a => a.userId === userId)) {
@@ -112,12 +122,10 @@ const checkInUserFirebase = async (userId: string, nickname: string): Promise<Ch
 
     if (result.committed) {
       const updatedData = result.snapshot.val();
-      const sortedAttendees = (updatedData.attendees || []).sort((a: Attendee, b: Attendee) => b.timestamp - a.timestamp);
+      const sortedAttendees = normalizeAttendees(updatedData.attendees).sort((a: Attendee, b: Attendee) => b.timestamp - a.timestamp);
       return { success: true, data: sortedAttendees };
     } else {
       // Transaction aborted means duplicate found (usually)
-      // We need to fetch current data to know WHICH duplicate it was, or just generic error
-      // Ideally we check snapshot, but for simplicity:
       return { success: false, message: "이미 출석했거나 중복된 닉네임입니다." };
     }
 
@@ -135,29 +143,45 @@ const cancelCheckInUserFirebase = async (userId: string): Promise<CheckInRespons
 
   try {
     const result = await runTransaction(dateRef, (currentData) => {
-      if (currentData === null || !currentData.attendees) return;
+      // If data is null, treat as success (already empty)
+      if (currentData === null) {
+        return { date: dateKey, count: 0, attendees: [] };
+      }
 
-      const attendees: Attendee[] = currentData.attendees;
+      // Safely parse attendees
+      const attendees = normalizeAttendees(currentData.attendees);
+      
       const index = attendees.findIndex(a => a.userId === userId);
 
-      if (index === -1) return; // Not found, abort
+      // If user not found, DO NOT ABORT. 
+      // Return the current data as-is so the transaction "commits" successfully.
+      // This ensures the client receives the latest list (without the user).
+      if (index === -1) {
+        currentData.attendees = attendees;
+        currentData.count = attendees.length;
+        return currentData;
+      }
 
-      // Remove
+      // Remove item
       attendees.splice(index, 1);
       
+      // Update data
       currentData.attendees = attendees;
       currentData.count = attendees.length;
       return currentData;
     });
 
+    // Since we handled the "not found" case inside, committed should be true
     if (result.committed) {
       const updatedData = result.snapshot.val();
-      const sortedAttendees = (updatedData?.attendees || []).sort((a: Attendee, b: Attendee) => b.timestamp - a.timestamp);
+      const sortedAttendees = normalizeAttendees(updatedData?.attendees).sort((a: Attendee, b: Attendee) => b.timestamp - a.timestamp);
       return { success: true, data: sortedAttendees };
     } else {
-      return { success: false, message: "출석 기록을 찾을 수 없습니다." };
+      console.warn("Transaction aborted unexpectedly");
+      return { success: false, message: "출석 취소 중 오류가 발생했습니다." };
     }
   } catch (error) {
+    console.error("Cancel Check-in Error:", error);
     return { success: false, message: "취소 처리에 실패했습니다." };
   }
 };
