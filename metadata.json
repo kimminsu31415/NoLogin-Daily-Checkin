@@ -1,5 +1,5 @@
 {
-  "name": "Badminton Check-In",
-  "description": "An anonymous, cookie-free daily check-in system for the Badminton Club.",
+  "name": "ARA-CheckIn",
+  "description": "실시간 동기화 기반 익명 출석 체크 시스템 (AI 협업 및 백엔드 안정성 강화)",
   "requestFramePermissions": []
 }
